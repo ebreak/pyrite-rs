@@ -40,9 +40,7 @@ impl Server {
 
 			let mut data = vec![0 as u8; recv_size];
 			for i in 0..recv_size { data[i] = buf[i]; }
-			thread::spawn(move || {
-				self.process(data, recv_addr);
-			});
+			thread::spawn(move || self.process(data, recv_addr));
 		}
 	}
 
