@@ -44,4 +44,25 @@ impl Package {
 			body,
 		})
 	}
+
+	#[allow(unused)]
+	pub fn to_bytes(&self) -> Vec<u8> {
+		let mut ret: Vec<u8> = Vec::new();
+
+		// sequence
+		for i in 0..4 {
+			ret.push((self.sequence >> i*8) as u8);
+		}
+
+		// identifier
+		for c in self.identifier.chars() {
+			ret.push(c as u8);
+		}
+		ret.push(0);
+
+		// body
+		ret.append(&mut self.body.clone());
+
+		ret
+	}
 }
