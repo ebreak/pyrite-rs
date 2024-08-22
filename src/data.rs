@@ -17,14 +17,17 @@ impl DataMap {
 		}
 	}
 
+	#[allow(unused)]
 	pub fn set_int(&mut self, key: String, value: i64) -> Option<i64> {
 		self.int_map.insert(key, value)
 	}
 	
+	#[allow(unused)]
 	pub fn set_string(&mut self, key: String, value: String) -> Option<String> {
 		self.string_map.insert(key, value)
 	}
 
+	#[allow(unused)]
 	pub unsafe fn set_any<T: Copy>(&mut self, key: String, value: &T) {
 		let ptr = value as *const T as *const u8;
 		let raw = std::slice::from_raw_parts(ptr, mem::size_of::<T>());
@@ -32,14 +35,17 @@ impl DataMap {
 		self.any_map.insert(key, vec);
 	}
 
+	#[allow(unused)]
 	pub fn get_int(&mut self, key: &String) -> Option<&i64> {
 		self.int_map.get(key)
 	}
 
+	#[allow(unused)]
 	pub fn get_string(&mut self, key: &String) -> Option<&String> {
 		self.string_map.get(key)
 	}
 
+	#[allow(unused)]
 	pub unsafe fn get_any<T: Copy>(&mut self, key: &String) -> Option<T> {
 		match self.any_map.get(key) {
 			Some(vec) => {
