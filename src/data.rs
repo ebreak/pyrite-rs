@@ -9,6 +9,14 @@ pub struct DataMap {
 }
 
 impl DataMap {
+	pub fn new() -> Self {
+		DataMap{
+			int_map: HashMap::new(),
+			string_map: HashMap::new(),
+			any_map: HashMap::new(),
+		}
+	}
+
 	pub fn set_int(&mut self, key: String, value: i64) -> Option<i64> {
 		self.int_map.insert(key, value)
 	}
