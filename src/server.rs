@@ -38,8 +38,7 @@ impl Server {
 			let (recv_size, recv_addr) = socket.recv_from(&mut buf).unwrap();
 			if recv_size == 0 { continue; }
 
-			let mut data = vec![0 as u8; recv_size];
-			for i in 0..recv_size { data[i] = buf[i]; }
+			let data = Vec::from(&buf[0..recv_size]);
 			thread::spawn(move || self.process(data, recv_addr));
 		}
 	}
