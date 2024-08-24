@@ -33,8 +33,8 @@ impl Server {
 	pub fn start(&'static self) -> ! {
 		let socket = UdpSocket::bind(self.addr).unwrap();
 		
+		let mut buf = [0 as u8; MAX_TRANSMIT_SIZE];
 		loop {
-			let mut buf = [0 as u8; MAX_TRANSMIT_SIZE];
 			let (recv_size, recv_addr) = socket.recv_from(&mut buf).unwrap();
 			if recv_size == 0 { continue; }
 
