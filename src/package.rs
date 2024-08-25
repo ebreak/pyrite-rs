@@ -1,9 +1,9 @@
 use std::net::{SocketAddr, UdpSocket};
 
 pub struct Package {
-	sequence: i32,
-	identifier: String,
-	body: Vec<u8>,
+	pub sequence: i32,
+	pub identifier: String,
+	pub body: Vec<u8>,
 }
 
 impl Package {
