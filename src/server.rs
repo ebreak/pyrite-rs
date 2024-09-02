@@ -3,6 +3,8 @@ use std::{collections::HashMap, net::{SocketAddr, UdpSocket}, sync::{mpsc::{Rece
 
 use crate::{data::DataMap, package::Package, MAX_TRANSMIT_SIZE};
 
+type ServerHandlerPtr = fn(&SocketAddr, &Vec<u8>) -> Option<Vec<u8>>;
+
 pub struct ClientData {
 	pub sequence: u64,
 	pub promise_buf: HashMap<i32, Sender<Package>>,
@@ -23,6 +25,7 @@ impl ClientData {
 pub struct Server {
 	pub addr: SocketAddr,
 	pub socket: UdpSocket,
+	router: HashMap<&'static str, ServerHandlerPtr>,
 	client_data: HashMap<SocketAddr, ClientData>,
 }
 
@@ -34,8 +37,19 @@ impl Server {
 		Server { 
 			addr,
 			socket,
+			router: HashMap::new(),
 			client_data: HashMap::new(),
 		}
+	}
+
+	#[allow(unused)]
+	pub fn set_handler(&mut self, identifier: &'static str, handler: ServerHandlerPtr) -> bool {
+		if identifier.starts_with("prt-") {
+			return false;
+		}
+
+		self.router.insert(identifier, handler);
+		return true;
 	}
 
 	#[allow(unused)]
