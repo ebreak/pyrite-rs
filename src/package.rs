@@ -71,8 +71,8 @@ impl Package {
 	#[allow(unused)]
 	pub fn send_to(
 		&self,
-		socket: UdpSocket,
-		addr: SocketAddr
+		socket: &UdpSocket,
+		addr: &SocketAddr
 	) -> Result<usize, std::io::Error> {
 		socket.send_to(&self.to_bytes(), addr)
 	}

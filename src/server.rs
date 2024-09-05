@@ -1,14 +1,13 @@
-use core::panic;
-use std::{collections::HashMap, net::{SocketAddr, UdpSocket}, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}, thread};
+use std::{collections::HashMap, net::{SocketAddr, UdpSocket}, sync::{mpsc::Sender, Arc, Mutex}, thread};
 
 use crate::{data::DataMap, package::Package, MAX_TRANSMIT_SIZE};
 
-type ServerHandlerPtr = fn(&SocketAddr, &Vec<u8>) -> Option<Vec<u8>>;
+type ServerHandlerPtr = fn(&SocketAddr, Vec<u8>) -> Option<Vec<u8>>;
 
 pub struct ClientData {
 	pub sequence: u64,
 	pub promise_buf: HashMap<i32, Sender<Package>>,
-	pub data: DataMap,
+	// pub data: Arc<Mutex<DataMap>>,
 }
 
 impl ClientData {
@@ -17,7 +16,7 @@ impl ClientData {
 		ClientData {
 			sequence: 0,
 			promise_buf: HashMap::new(),
-			data: DataMap::new(),
+			// data: Arc::new(Mutex::new(DataMap::new())),
 		}
 	}
 }
@@ -25,7 +24,7 @@ impl ClientData {
 pub struct Server {
 	pub addr: SocketAddr,
 	pub socket: UdpSocket,
-	router: HashMap<&'static str, ServerHandlerPtr>,
+	router: HashMap<String, ServerHandlerPtr>,
 	client_data: HashMap<SocketAddr, ClientData>,
 }
 
@@ -48,12 +47,12 @@ impl Server {
 			return false;
 		}
 
-		self.router.insert(identifier, handler);
+		self.router.insert(String::from(identifier), handler);
 		return true;
 	}
 
 	#[allow(unused)]
-	pub fn start(&mut self) -> ! {
+	pub fn start(&'static mut self) -> ! {
 		let mut buf = [0 as u8; MAX_TRANSMIT_SIZE];
 		loop {
 			let (recv_size, recv_addr) = self.socket.recv_from(&mut buf).unwrap();
@@ -81,9 +80,32 @@ impl Server {
 				// 此处理 ack 的逻辑并不会过度占用计算资源
 				// 因为耗时的数据处理操作在 Channel 另一端的线程中进行
 				// 此处仅有一些基本的 HashMap 操作，时间复杂度为 O(1)
+				continue;
 			}
 
-			todo!()
+			let mut handler = self.router.get(&recv_pkg.identifier);
+			// 如果找不到 identifier 对应的处理函数，则查找默认处理函数
+			if handler == None {
+				handler = self.router.get("*");
+			}
+
+			if handler == None {
+				continue;
+			}
+
+			let handler = handler.unwrap();
+			let this_socket = &self.socket;
+			thread::spawn(move || {
+				let resp_data = handler(&recv_addr, recv_pkg.body);
+				if resp_data.is_none() { return; }
+				let resp_data = resp_data.unwrap();
+				let resp_pkg = Package{
+					sequence: recv_pkg.sequence,
+					identifier: "prt-ack".to_string(),
+					body: resp_data,
+				};
+				resp_pkg.send_to(&this_socket, &recv_addr);
+			});
 		}
 	}
 }
