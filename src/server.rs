@@ -1,6 +1,6 @@
-use std::{collections::HashMap, net::{SocketAddr, UdpSocket}, sync::{mpsc::Sender, Arc, Mutex}, thread};
+use std::{collections::HashMap, net::{SocketAddr, UdpSocket}, sync::mpsc::Sender, thread};
 
-use crate::{data::DataMap, package::Package, MAX_TRANSMIT_SIZE};
+use crate::{package::Package, MAX_TRANSMIT_SIZE};
 
 type ServerHandlerPtr = fn(&SocketAddr, Vec<u8>) -> Option<Vec<u8>>;
 
@@ -22,7 +22,6 @@ impl ClientData {
 }
 
 pub struct Server {
-	pub addr: SocketAddr,
 	pub socket: UdpSocket,
 	router: HashMap<String, ServerHandlerPtr>,
 	client_data: HashMap<SocketAddr, ClientData>,
@@ -33,8 +32,7 @@ impl Server {
 	pub fn new(ip: [u8; 4], port: u16) -> Self {
 		let addr = SocketAddr::from((ip, port));
 		let socket = UdpSocket::bind(addr).unwrap();
-		Server { 
-			addr,
+		Server {
 			socket,
 			router: HashMap::new(),
 			client_data: HashMap::new(),
